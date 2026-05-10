@@ -10,12 +10,16 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 pub fn install_from_mirror(config: &Config, state: &mut State, name: &str) -> Result<InstallRecord> {
-    let cache_dir = config::cache_dir(config)?;
-    util::ensure_dir(&cache_dir)?;
+    let taj = if mirror_mode(config) == MirrorMode::Http {
+        fetch_taj_from_http(config, name)?
+    } else {
+        let cache_dir = config::cache_dir(config)?;
+        util::ensure_dir(&cache_dir)?;
 
-    let mirror_dir = git::ensure_mirror(config, &cache_dir)?;
-    let taj_path = find_taj_file(&mirror_dir, &config.mirror_packages_dir, name)?;
-    let taj = TajFile::load(&taj_path)?;
+        let mirror_dir = git::ensure_mirror(config, &cache_dir)?;
+        let taj_path = find_taj_file(&mirror_dir, &config.mirror_packages_dir, name)?;
+        TajFile::load(&taj_path)?
+    };
 
     let package_name = taj.name.clone().unwrap_or_else(|| name.to_string());
     if state.packages.contains_key(&package_name) {
@@ -224,5 +228,123 @@ fn create_temp_build_dir(cache_dir: &Path, name: &str) -> Result<tempfile::TempD
         .prefix(&format!("taj-{}-", name))
         .tempdir_in(tmp_root)
         .context("failed to create temp build dir")
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum MirrorMode {
+    Git,
+    Http,
+}
+
+fn mirror_mode(config: &Config) -> MirrorMode {
+    match config.mirror_mode.as_deref() {
+        Some(mode) if mode.eq_ignore_ascii_case("http") => MirrorMode::Http,
+        Some(mode) if mode.eq_ignore_ascii_case("https") => MirrorMode::Http,
+        Some(mode) if mode.eq_ignore_ascii_case("url") => MirrorMode::Http,
+        _ => MirrorMode::Git,
+    }
+}
+
+fn fetch_taj_from_http(config: &Config, name: &str) -> Result<TajFile> {
+    let bases = http_mirror_bases(config);
+    for base in &bases {
+        for ext in ["taj", "Taj"] {
+            let url = format!("{}/{}.{}", base, name, ext);
+            if let Some(content) = try_http_get_text(&url)? {
+                let taj: TajFile = toml::from_str(&content).with_context(|| {
+                    format!("failed to parse taj file from {}", url)
+                })?;
+                return Ok(taj);
+            }
+        }
+    }
+
+    bail!(
+        "no taj file found for '{}' in HTTP mirror (bases: {})",
+        name,
+        bases.join(", ")
+    )
+}
+
+fn http_mirror_bases(config: &Config) -> Vec<String> {
+    let mut bases: Vec<String> = Vec::new();
+
+    if let Some(raw) = github_raw_base(
+        &config.mirror_repo,
+        &config.mirror_branch,
+        &config.mirror_packages_dir,
+    ) {
+        push_unique(&mut bases, raw);
+    }
+
+    let mut base = config.mirror_repo.trim_end_matches('/').to_string();
+    let pkg_dir = config.mirror_packages_dir.trim_matches('/');
+    if !pkg_dir.is_empty() && !base.ends_with(&format!("/{}", pkg_dir)) {
+        base = format!("{}/{}", base, pkg_dir);
+    }
+    push_unique(&mut bases, base);
+
+    bases
+}
+
+fn github_raw_base(repo_url: &str, branch: &str, packages_dir: &str) -> Option<String> {
+    let trimmed = repo_url.trim().trim_end_matches('/').trim_end_matches(".git");
+    let rest = trimmed
+        .strip_prefix("https://github.com/")
+        .or_else(|| trimmed.strip_prefix("http://github.com/"))?;
+
+    let mut parts = rest.split('/');
+    let owner = parts.next()?;
+    let repo = parts.next()?;
+    if owner.is_empty() || repo.is_empty() {
+        return None;
+    }
+
+    let mut base = format!(
+        "https://raw.githubusercontent.com/{}/{}/{}",
+        owner,
+        repo.trim_end_matches(".git"),
+        branch
+    );
+    let pkg_dir = packages_dir.trim_matches('/');
+    if !pkg_dir.is_empty() {
+        base.push('/');
+        base.push_str(pkg_dir);
+    }
+    Some(base)
+}
+
+fn try_http_get_text(url: &str) -> Result<Option<String>> {
+    match ureq::get(url).call() {
+        Ok(resp) => {
+            if resp.status() == 200 {
+                let content = resp
+                    .into_string()
+                    .with_context(|| format!("failed to read body from {}", url))?;
+                Ok(Some(content))
+            } else if resp.status() == 404 {
+                Ok(None)
+            } else {
+                bail!("mirror returned HTTP {} for {}", resp.status(), url)
+            }
+        }
+        Err(ureq::Error::Status(code, resp)) => {
+            if code == 404 {
+                Ok(None)
+            } else {
+                let body = resp.into_string().unwrap_or_default();
+                bail!("mirror returned HTTP {} for {}: {}", code, url, body)
+            }
+        }
+        Err(ureq::Error::Transport(err)) => {
+            bail!("failed to fetch {}: {}", url, err)
+        }
+    }
+}
+
+fn push_unique(list: &mut Vec<String>, value: String) {
+    if !list.iter().any(|existing| existing == &value) {
+        list.push(value);
+    }
 }
 

@@ -13,3 +13,4 @@ tempfile = "3.10"
 toml = "0.8"
 walkdir = "2.5"
 which = "6.0"
+ureq = { version = "2.12", default-features = false, features = ["tls"] }
