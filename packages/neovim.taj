@@ -2,4 +2,4 @@ name = "neovim"
 repo = "https://github.com/neovim/neovim.git"
 build = "make"
 bin = "nvim"
-build_args = "CMAKE_BUILD_TYPE=RelWithDebInfo"
+build_args = ["CMAKE_BUILD_TYPE=RelWithDebInfo"]
