@@ -1,0 +1,4 @@
+name = "fd"
+repo = "https://github.com/sharkdp/fd.git"
+build = "cargo"
+bin = "fd"

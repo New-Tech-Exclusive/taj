@@ -1,0 +1,5 @@
+name = "ripgrep"
+repo = "https://github.com/BurntSushi/ripgrep.git"
+build = "cargo"
+bin = "rg"
+build_args = ["--features", "pcre2"]
