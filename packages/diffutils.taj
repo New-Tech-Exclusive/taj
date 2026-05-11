@@ -1,0 +1,8 @@
+name = "diffutils"
+category = "utils"
+repo = "https://github.com/gnu-mirror-unofficial/diffutils.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

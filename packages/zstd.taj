@@ -1,0 +1,7 @@
+name = "zstd"
+category = "compression"
+repo = "https://github.com/facebook/zstd.git"
+build = "cmake"
+
+[install]
+method = "cmake"

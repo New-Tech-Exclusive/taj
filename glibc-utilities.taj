@@ -1,0 +1,21 @@
+name = "glibc-utilities"
+category = "meta"
+repo = "meta"
+build = "meta"
+depends = [
+  "systemd",
+  "linux",
+  "glibc",
+  "gcc",
+  "binutils",
+  "make",
+  "pkg-config",
+  "m4",
+  "gawk",
+  "sed",
+  "diffutils",
+  "patch",
+  "coreutils",
+  "util-linux",
+  "bash"
+]

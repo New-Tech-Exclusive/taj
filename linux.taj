@@ -1,0 +1,10 @@
+name = "linux"
+category = "base"
+repo = "https://github.com/torvalds/linux.git"
+build = "make"
+build_args = ["defconfig", "all"]
+bin = "vmlinux"
+
+[deps]
+tools = ["make", "gcc", "bc", "bison", "flex", "openssl", "perl"]
+message = "Kernel builds require a configured toolchain and headers; see Documentation/process/changes.rst in the kernel tree."

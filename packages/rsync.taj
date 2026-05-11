@@ -1,0 +1,8 @@
+name = "rsync"
+category = "networking"
+repo = "https://github.com/WayneD/rsync.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

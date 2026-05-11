@@ -1,0 +1,8 @@
+name = "shadow"
+category = "security"
+repo = "https://github.com/shadow-maint/shadow.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

@@ -1,0 +1,8 @@
+name = "psmisc"
+category = "utils"
+repo = "https://gitlab.com/psmisc/psmisc.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

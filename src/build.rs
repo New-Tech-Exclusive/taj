@@ -13,6 +13,8 @@ pub enum BuildMethod {
     Go,
     Make,
     Cmake,
+    Autotools,
+    Meson,
     Gcc,
     Gpp,
     Rustc,
@@ -27,6 +29,8 @@ impl FromStr for BuildMethod {
             "go" => Ok(BuildMethod::Go),
             "make" => Ok(BuildMethod::Make),
             "cmake" => Ok(BuildMethod::Cmake),
+            "autotools" | "configure" => Ok(BuildMethod::Autotools),
+            "meson" => Ok(BuildMethod::Meson),
             "gcc" | "c" => Ok(BuildMethod::Gcc),
             "g++" | "gpp" | "cpp" => Ok(BuildMethod::Gpp),
             "rustc" => Ok(BuildMethod::Rustc),
@@ -41,6 +45,7 @@ pub struct BuildSpec {
     pub args: Vec<String>,
     pub bin: Option<String>,
     pub subdir: Option<PathBuf>,
+    pub build_dir: Option<PathBuf>,
     pub env: HashMap<String, String>,
 }
 
@@ -52,9 +57,41 @@ pub fn build(repo_dir: &Path, spec: &BuildSpec, name_hint: &str, out_dir: &Path)
         BuildMethod::Go => build_go(repo_dir, spec, name_hint, out_dir),
         BuildMethod::Make => build_make(repo_dir, spec),
         BuildMethod::Cmake => build_cmake(repo_dir, spec, name_hint, out_dir),
+        BuildMethod::Autotools => build_autotools(repo_dir, spec),
+        BuildMethod::Meson => build_meson(repo_dir, spec, name_hint, out_dir),
         BuildMethod::Gcc => build_gcc(repo_dir, spec, name_hint, out_dir),
         BuildMethod::Gpp => build_gpp(repo_dir, spec, name_hint, out_dir),
         BuildMethod::Rustc => build_rustc(repo_dir, spec, name_hint, out_dir),
+    }
+}
+
+pub fn build_no_output(
+    repo_dir: &Path,
+    spec: &BuildSpec,
+    name_hint: &str,
+    out_dir: &Path,
+) -> Result<()> {
+    util::ensure_dir(out_dir)?;
+
+    match spec.method {
+        BuildMethod::Cargo => build_cargo_only(repo_dir, spec),
+        BuildMethod::Go => build_go_only(repo_dir, spec),
+        BuildMethod::Make => build_make_only(repo_dir, spec),
+        BuildMethod::Cmake => build_cmake_only(repo_dir, spec, out_dir),
+        BuildMethod::Autotools => build_autotools_only(repo_dir, spec),
+        BuildMethod::Meson => build_meson_only(repo_dir, spec),
+        BuildMethod::Gcc => {
+            let _ = build_gcc(repo_dir, spec, name_hint, out_dir)?;
+            Ok(())
+        }
+        BuildMethod::Gpp => {
+            let _ = build_gpp(repo_dir, spec, name_hint, out_dir)?;
+            Ok(())
+        }
+        BuildMethod::Rustc => {
+            let _ = build_rustc(repo_dir, spec, name_hint, out_dir)?;
+            Ok(())
+        }
     }
 }
 
@@ -107,6 +144,15 @@ fn build_cargo(repo_dir: &Path, spec: &BuildSpec, name_hint: &str) -> Result<Pat
     Ok(bin_path)
 }
 
+fn build_cargo_only(repo_dir: &Path, spec: &BuildSpec) -> Result<()> {
+    util::require_tool("cargo")?;
+
+    let mut args = vec!["build".to_string(), "--release".to_string()];
+    args.extend(spec.args.clone());
+    util::run_command("cargo", &args, Some(repo_dir), Some(&spec.env))?;
+    Ok(())
+}
+
 fn build_go(repo_dir: &Path, spec: &BuildSpec, name_hint: &str, out_dir: &Path) -> Result<PathBuf> {
     util::require_tool("go")?;
 
@@ -123,18 +169,85 @@ fn build_go(repo_dir: &Path, spec: &BuildSpec, name_hint: &str, out_dir: &Path) 
     Ok(out_path)
 }
 
+fn build_go_only(repo_dir: &Path, spec: &BuildSpec) -> Result<()> {
+    util::require_tool("go")?;
+
+    let mut args = vec!["build".to_string()];
+    args.extend(spec.args.clone());
+    util::run_command("go", &args, Some(repo_dir), Some(&spec.env))?;
+    Ok(())
+}
+
+fn build_work_dir(repo_dir: &Path, spec: &BuildSpec) -> Result<PathBuf> {
+    if let Some(build_dir) = &spec.build_dir {
+        let work_dir = repo_dir.join(build_dir);
+        util::ensure_dir(&work_dir)?;
+        Ok(work_dir)
+    } else {
+        Ok(repo_dir.to_path_buf())
+    }
+}
+
+fn build_subdir(repo_dir: &Path, spec: &BuildSpec, default_name: &str) -> Result<PathBuf> {
+    let build_dir = if let Some(build_dir) = &spec.build_dir {
+        repo_dir.join(build_dir)
+    } else {
+        repo_dir.join(default_name)
+    };
+    util::ensure_dir(&build_dir)?;
+    Ok(build_dir)
+}
+
 fn build_make(repo_dir: &Path, spec: &BuildSpec) -> Result<PathBuf> {
     util::require_tool("make")?;
 
-    let before = list_executables(repo_dir)?;
+    let work_dir = build_work_dir(repo_dir, spec)?;
+    let before = list_executables(&work_dir)?;
 
     let mut args = Vec::new();
     args.extend(spec.args.clone());
-    util::run_command("make", &args, Some(repo_dir), Some(&spec.env))?;
+    util::run_command("make", &args, Some(&work_dir), Some(&spec.env))?;
 
-    let after = list_executables(repo_dir)?;
+    let after = list_executables(&work_dir)?;
     let candidates = diff_executables(&before, &after);
     pick_executable(candidates, spec.bin.as_deref())
+}
+
+fn build_autotools(repo_dir: &Path, spec: &BuildSpec) -> Result<PathBuf> {
+    util::require_tool("make")?;
+
+    let work_dir = build_work_dir(repo_dir, spec)?;
+    run_autotools_configure(repo_dir, &work_dir, spec)?;
+
+    let before = list_executables(&work_dir)?;
+
+    let mut args = Vec::new();
+    util::run_command("make", &args, Some(&work_dir), Some(&spec.env))?;
+
+    let after = list_executables(&work_dir)?;
+    let candidates = diff_executables(&before, &after);
+    pick_executable(candidates, spec.bin.as_deref())
+}
+
+fn build_make_only(repo_dir: &Path, spec: &BuildSpec) -> Result<()> {
+    util::require_tool("make")?;
+
+    let work_dir = build_work_dir(repo_dir, spec)?;
+    let mut args = Vec::new();
+    args.extend(spec.args.clone());
+    util::run_command("make", &args, Some(&work_dir), Some(&spec.env))?;
+    Ok(())
+}
+
+fn build_autotools_only(repo_dir: &Path, spec: &BuildSpec) -> Result<()> {
+    util::require_tool("make")?;
+
+    let work_dir = build_work_dir(repo_dir, spec)?;
+    run_autotools_configure(repo_dir, &work_dir, spec)?;
+
+    let args: Vec<String> = Vec::new();
+    util::run_command("make", &args, Some(&work_dir), Some(&spec.env))?;
+    Ok(())
 }
 
 fn build_cmake(
@@ -145,8 +258,7 @@ fn build_cmake(
 ) -> Result<PathBuf> {
     util::require_tool("cmake")?;
 
-    let build_dir = repo_dir.join("build");
-    util::ensure_dir(&build_dir)?;
+    let build_dir = build_subdir(repo_dir, spec, "build")?;
 
     let mut config_args = vec![
         "-S".to_string(),
@@ -169,6 +281,117 @@ fn build_cmake(
 
     let candidates = list_executables(out_dir)?;
     pick_executable(candidates, spec.bin.as_deref())
+}
+
+fn run_autotools_configure(repo_dir: &Path, work_dir: &Path, spec: &BuildSpec) -> Result<()> {
+    let configure = repo_dir.join("configure");
+    if !configure.exists() {
+        let autogen = repo_dir.join("autogen.sh");
+        let bootstrap = repo_dir.join("bootstrap");
+
+        if autogen.exists() {
+            util::run_command("sh", &["autogen.sh".to_string()], Some(repo_dir), Some(&spec.env))?;
+        } else if bootstrap.exists() {
+            util::run_command("sh", &["bootstrap".to_string()], Some(repo_dir), Some(&spec.env))?;
+        } else if util::require_tool("autoreconf").is_ok() {
+            util::run_command(
+                "autoreconf",
+                &["-fi".to_string()],
+                Some(repo_dir),
+                Some(&spec.env),
+            )?;
+        }
+
+        if !configure.exists() {
+            bail!("no configure script found at {}", configure.display());
+        }
+    }
+
+    let mut args = vec![configure.display().to_string()];
+    args.extend(spec.args.clone());
+    util::run_command("sh", &args, Some(work_dir), Some(&spec.env))?;
+    Ok(())
+}
+
+fn build_cmake_only(repo_dir: &Path, spec: &BuildSpec, out_dir: &Path) -> Result<()> {
+    util::require_tool("cmake")?;
+
+    let build_dir = build_subdir(repo_dir, spec, "build")?;
+
+    let mut config_args = vec![
+        "-S".to_string(),
+        ".".to_string(),
+        "-B".to_string(),
+        build_dir.display().to_string(),
+        "-DCMAKE_BUILD_TYPE=Release".to_string(),
+        format!("-DCMAKE_RUNTIME_OUTPUT_DIRECTORY={}", out_dir.display()),
+    ];
+    config_args.extend(spec.args.clone());
+    util::run_command("cmake", &config_args, Some(repo_dir), Some(&spec.env))?;
+
+    let build_args = vec![
+        "--build".to_string(),
+        build_dir.display().to_string(),
+        "--config".to_string(),
+        "Release".to_string(),
+    ];
+    util::run_command("cmake", &build_args, Some(repo_dir), Some(&spec.env))?;
+    Ok(())
+}
+
+fn build_meson(
+    repo_dir: &Path,
+    spec: &BuildSpec,
+    _name_hint: &str,
+    _out_dir: &Path,
+) -> Result<PathBuf> {
+    util::require_tool("meson")?;
+    util::require_tool("ninja")?;
+
+    let build_dir = build_subdir(repo_dir, spec, "build")?;
+    let configured = build_dir.join("build.ninja").exists();
+
+    let mut setup_args = vec!["setup".to_string()];
+    if configured {
+        setup_args.push("--reconfigure".to_string());
+    }
+    setup_args.push(build_dir.display().to_string());
+    setup_args.extend(spec.args.clone());
+    util::run_command("meson", &setup_args, Some(repo_dir), Some(&spec.env))?;
+
+    let compile_args = vec![
+        "compile".to_string(),
+        "-C".to_string(),
+        build_dir.display().to_string(),
+    ];
+    util::run_command("meson", &compile_args, Some(repo_dir), Some(&spec.env))?;
+
+    let candidates = list_executables(&build_dir)?;
+    pick_executable(candidates, spec.bin.as_deref())
+}
+
+fn build_meson_only(repo_dir: &Path, spec: &BuildSpec) -> Result<()> {
+    util::require_tool("meson")?;
+    util::require_tool("ninja")?;
+
+    let build_dir = build_subdir(repo_dir, spec, "build")?;
+    let configured = build_dir.join("build.ninja").exists();
+
+    let mut setup_args = vec!["setup".to_string()];
+    if configured {
+        setup_args.push("--reconfigure".to_string());
+    }
+    setup_args.push(build_dir.display().to_string());
+    setup_args.extend(spec.args.clone());
+    util::run_command("meson", &setup_args, Some(repo_dir), Some(&spec.env))?;
+
+    let compile_args = vec![
+        "compile".to_string(),
+        "-C".to_string(),
+        build_dir.display().to_string(),
+    ];
+    util::run_command("meson", &compile_args, Some(repo_dir), Some(&spec.env))?;
+    Ok(())
 }
 
 fn build_gcc(repo_dir: &Path, spec: &BuildSpec, name_hint: &str, out_dir: &Path) -> Result<PathBuf> {

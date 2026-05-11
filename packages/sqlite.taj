@@ -1,0 +1,8 @@
+name = "sqlite"
+category = "libraries"
+repo = "https://github.com/sqlite/sqlite.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

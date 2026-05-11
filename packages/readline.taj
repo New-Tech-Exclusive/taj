@@ -1,0 +1,8 @@
+name = "readline"
+category = "libraries"
+repo = "https://github.com/gnu-mirror-unofficial/readline.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

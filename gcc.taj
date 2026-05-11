@@ -1,0 +1,17 @@
+name = "gcc"
+category = "devtools"
+repo = "https://github.com/gcc-mirror/gcc.git"
+build = "autotools"
+build_dir = "build"
+build_args = ["--disable-multilib", "--enable-languages=c,c++"]
+bin = "gcc"
+depends = ["binutils", "make"]
+
+[install]
+method = "make"
+args = ["install"]
+
+[deps]
+tools = ["gcc", "g++", "make", "bison", "flex", "gawk", "python3"]
+pkg_config = ["gmp", "mpfr", "mpc"]
+message = "GCC needs GMP, MPFR, and MPC libraries (and headers)."

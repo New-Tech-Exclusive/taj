@@ -1,0 +1,8 @@
+name = "libffi"
+category = "libraries"
+repo = "https://github.com/libffi/libffi.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

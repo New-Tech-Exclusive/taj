@@ -1,0 +1,8 @@
+name = "curl"
+category = "networking"
+repo = "https://github.com/curl/curl.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

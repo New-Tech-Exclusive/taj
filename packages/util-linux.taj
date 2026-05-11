@@ -1,0 +1,8 @@
+name = "util-linux"
+category = "base"
+repo = "https://github.com/util-linux/util-linux.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

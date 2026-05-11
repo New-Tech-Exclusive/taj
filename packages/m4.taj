@@ -1,0 +1,8 @@
+name = "m4"
+category = "devtools"
+repo = "https://github.com/gnu-mirror-unofficial/m4.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

@@ -1,4 +1,5 @@
 name = "fd"
+category = "search"
 repo = "https://github.com/sharkdp/fd.git"
 build = "cargo"
 bin = "fd"

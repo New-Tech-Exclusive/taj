@@ -1,0 +1,8 @@
+name = "less"
+category = "utils"
+repo = "https://github.com/gwsw/less.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

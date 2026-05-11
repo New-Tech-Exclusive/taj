@@ -1,0 +1,8 @@
+name = "libpng"
+category = "libraries"
+repo = "https://github.com/glennrp/libpng.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

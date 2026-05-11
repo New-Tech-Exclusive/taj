@@ -1,0 +1,8 @@
+name = "pciutils"
+category = "utils"
+repo = "https://github.com/pciutils/pciutils.git"
+build = "make"
+
+[install]
+method = "make"
+args = ["install"]

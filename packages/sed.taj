@@ -1,0 +1,8 @@
+name = "sed"
+category = "search"
+repo = "https://github.com/mirror/sed.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

@@ -1,0 +1,8 @@
+name = "htop"
+category = "monitoring"
+repo = "https://github.com/htop-dev/htop.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

@@ -1,0 +1,8 @@
+name = "jq"
+category = "utils"
+repo = "https://github.com/jqlang/jq.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

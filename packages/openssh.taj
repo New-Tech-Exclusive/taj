@@ -1,0 +1,8 @@
+name = "openssh"
+category = "security"
+repo = "https://github.com/openssh/openssh-portable.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

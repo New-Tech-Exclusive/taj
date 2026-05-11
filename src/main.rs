@@ -48,7 +48,7 @@ fn run() -> Result<()> {
                 unreachable!("clap guarantees one source");
             };
             state.save(Path::new(&state_path))?;
-            println!("installed {} -> {}", record.name, record.bin_path);
+            print_record("installed", &record);
         }
         cli::Command::Uninstall { name } => {
             install::uninstall(&config, &mut state, &name)?;
@@ -63,10 +63,30 @@ fn run() -> Result<()> {
                 keys.sort();
                 for key in keys {
                     if let Some(record) = state.packages.get(&key) {
-                        println!("{} -> {}", record.name, record.bin_path);
+                        println!("{}", format_record_label(record));
                     }
                 }
             }
+        }
+        cli::Command::Upgrade(args) => {
+            if args.all {
+                let records = install::upgrade_all(&config, &mut state)?;
+                state.save(Path::new(&state_path))?;
+                for record in records {
+                    print_record("upgraded", &record);
+                }
+            } else if let Some(name) = args.name {
+                let record = install::upgrade_package(&config, &mut state, &name)?;
+                state.save(Path::new(&state_path))?;
+                print_record("upgraded", &record);
+            } else {
+                unreachable!("clap guarantees one target");
+            }
+        }
+        cli::Command::Meta(args) => {
+            let record = install::install_from_mirror(&config, &mut state, &args.name)?;
+            state.save(Path::new(&state_path))?;
+            print_record("installed", &record);
         }
     }
 
@@ -82,12 +102,12 @@ fn run_legacy(cmd: cli::LegacyCommand) -> Result<()> {
         cli::LegacyCommand::InstallMirror { name } => {
             let record = install::install_from_mirror(&config, &mut state, &name)?;
             state.save(Path::new(&state_path))?;
-            println!("installed {} -> {}", record.name, record.bin_path);
+            print_record("installed", &record);
         }
         cli::LegacyCommand::InstallGit { url, provider } => {
             let record = install::install_from_git(&config, &mut state, &url, &provider)?;
             state.save(Path::new(&state_path))?;
-            println!("installed {} -> {}", record.name, record.bin_path);
+            print_record("installed", &record);
         }
         cli::LegacyCommand::Uninstall { name } => {
             install::uninstall(&config, &mut state, &name)?;
@@ -97,4 +117,16 @@ fn run_legacy(cmd: cli::LegacyCommand) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn format_record_label(record: &state::InstallRecord) -> String {
+    if record.is_meta {
+        format!("{} (meta)", record.name)
+    } else {
+        format!("{} -> {}", record.name, record.bin_path)
+    }
+}
+
+fn print_record(action: &str, record: &state::InstallRecord) {
+    println!("{} {}", action, format_record_label(record));
 }

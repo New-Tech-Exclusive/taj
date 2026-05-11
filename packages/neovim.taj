@@ -1,5 +1,9 @@
 name = "neovim"
+category = "editors"
 repo = "https://github.com/neovim/neovim.git"
-build = "make"
+build = "cmake"
 bin = "nvim"
-build_args = ["CMAKE_BUILD_TYPE=RelWithDebInfo"]
+build_args = ["-DCMAKE_BUILD_TYPE=RelWithDebInfo"]
+
+[install]
+method = "cmake"

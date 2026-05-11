@@ -1,6 +1,7 @@
 use crate::config::Config;
 use crate::util;
 use anyhow::{bail, Context, Result};
+use std::fs;
 use std::path::{Path, PathBuf};
 
 pub fn clone_repo(url: &str, dest: &Path) -> Result<()> {
@@ -14,6 +15,64 @@ pub fn clone_repo(url: &str, dest: &Path) -> Result<()> {
         dest.display().to_string(),
     ];
     util::run_command("git", &args, None, None)
+}
+
+pub fn clone_repo_at_ref(url: &str, dest: &Path, reference: Option<&str>) -> Result<()> {
+    util::require_tool("git")?;
+
+    let Some(reference) = reference else {
+        return clone_repo(url, dest);
+    };
+
+    let attempt = vec![
+        "clone".to_string(),
+        "--depth".to_string(),
+        "1".to_string(),
+        "--branch".to_string(),
+        reference.to_string(),
+        url.to_string(),
+        dest.display().to_string(),
+    ];
+
+    if util::run_command("git", &attempt, None, None).is_ok() {
+        return Ok(());
+    }
+
+    if dest.exists() {
+        fs::remove_dir_all(dest).with_context(|| {
+            format!("failed to clean up failed clone at {}", dest.display())
+        })?;
+    }
+
+    let clone_args = vec![
+        "clone".to_string(),
+        "--depth".to_string(),
+        "1".to_string(),
+        url.to_string(),
+        dest.display().to_string(),
+    ];
+    util::run_command("git", &clone_args, None, None)?;
+
+    let fetch_args = vec![
+        "-C".to_string(),
+        dest.display().to_string(),
+        "fetch".to_string(),
+        "--depth".to_string(),
+        "1".to_string(),
+        "origin".to_string(),
+        reference.to_string(),
+    ];
+    util::run_command("git", &fetch_args, None, None)?;
+
+    let checkout_args = vec![
+        "-C".to_string(),
+        dest.display().to_string(),
+        "checkout".to_string(),
+        "FETCH_HEAD".to_string(),
+    ];
+    util::run_command("git", &checkout_args, None, None)?;
+
+    Ok(())
 }
 
 pub fn ensure_mirror(config: &Config, cache_dir: &Path) -> Result<PathBuf> {

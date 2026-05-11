@@ -1,0 +1,8 @@
+name = "strace"
+category = "monitoring"
+repo = "https://github.com/strace/strace.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

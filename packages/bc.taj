@@ -1,0 +1,8 @@
+name = "bc"
+category = "utils"
+repo = "https://github.com/gavinhoward/bc.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

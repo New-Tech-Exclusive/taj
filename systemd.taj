@@ -1,0 +1,15 @@
+name = "systemd"
+category = "base"
+repo = "https://github.com/systemd/systemd.git"
+build = "meson"
+build_dir = "build"
+build_args = ["-Dtests=false"]
+bin = "systemctl"
+depends = ["util-linux", "zstd", "xz", "lz4"]
+
+[install]
+method = "meson"
+
+[deps]
+tools = ["meson", "ninja", "pkg-config", "python3", "gperf"]
+message = "systemd requires libcap, libmount, and other system libraries; install the relevant -dev packages for your distro."

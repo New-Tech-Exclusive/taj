@@ -1,0 +1,8 @@
+name = "which"
+category = "utils"
+repo = "https://github.com/gnu-mirror-unofficial/which.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

@@ -1,0 +1,8 @@
+name = "bash"
+category = "shell"
+repo = "https://github.com/bminor/bash.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

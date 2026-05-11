@@ -1,0 +1,8 @@
+name = "wget"
+category = "networking"
+repo = "https://github.com/mirror/wget.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

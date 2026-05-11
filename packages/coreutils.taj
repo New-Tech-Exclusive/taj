@@ -1,0 +1,8 @@
+name = "coreutils"
+category = "base"
+repo = "https://github.com/coreutils/coreutils.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

@@ -1,0 +1,8 @@
+name = "gawk"
+category = "search"
+repo = "https://github.com/mitchcapper/gawk.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

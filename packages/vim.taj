@@ -1,0 +1,8 @@
+name = "vim"
+category = "editors"
+repo = "https://github.com/vim/vim.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

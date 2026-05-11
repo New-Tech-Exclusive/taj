@@ -1,0 +1,7 @@
+name = "libarchive"
+category = "libraries"
+repo = "https://github.com/libarchive/libarchive.git"
+build = "cmake"
+
+[install]
+method = "cmake"

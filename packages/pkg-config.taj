@@ -1,0 +1,8 @@
+name = "pkg-config"
+category = "devtools"
+repo = "https://github.com/freedesktop/pkg-config.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

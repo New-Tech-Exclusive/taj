@@ -1,0 +1,15 @@
+name = "binutils"
+category = "devtools"
+repo = "https://github.com/bminor/binutils-gdb.git"
+build = "autotools"
+build_dir = "build"
+build_args = ["--disable-werror"]
+bin = "ld"
+depends = ["make"]
+
+[install]
+method = "make"
+args = ["install"]
+
+[deps]
+tools = ["make", "gcc", "g++"]

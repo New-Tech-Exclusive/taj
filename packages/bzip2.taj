@@ -1,0 +1,8 @@
+name = "bzip2"
+category = "compression"
+repo = "https://github.com/enthought/bzip2-1.0.6.git"
+build = "make"
+
+[install]
+method = "make"
+args = ["install"]

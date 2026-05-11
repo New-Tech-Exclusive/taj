@@ -1,0 +1,8 @@
+name = "libxslt"
+category = "libraries"
+repo = "https://gitlab.gnome.org/GNOME/libxslt.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

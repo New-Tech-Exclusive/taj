@@ -1,4 +1,5 @@
 name = "ripgrep"
+category = "search"
 repo = "https://github.com/BurntSushi/ripgrep.git"
 build = "cargo"
 bin = "rg"

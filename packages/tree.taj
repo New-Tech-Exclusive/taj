@@ -1,0 +1,8 @@
+name = "tree"
+category = "filesystem"
+repo = "https://github.com/OldManProgrammer/unix-tree.git"
+build = "make"
+
+[install]
+method = "make"
+args = ["install"]

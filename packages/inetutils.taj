@@ -1,0 +1,8 @@
+name = "inetutils"
+category = "networking"
+repo = "https://github.com/gnu-mirror-unofficial/inetutils.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

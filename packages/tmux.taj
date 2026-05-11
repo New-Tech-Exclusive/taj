@@ -1,0 +1,8 @@
+name = "tmux"
+category = "utils"
+repo = "https://github.com/tmux/tmux.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

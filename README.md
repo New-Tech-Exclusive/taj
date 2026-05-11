@@ -23,6 +23,10 @@ sudo ./target/release/taj -gl https://gitlab.com/org/repo.git
 # Base mirror
 taj install PACKAGENAME
 
+# Meta/bundle packages
+taj meta PACKAGENAME
+taj bundle PACKAGENAME
+
 # Direct git installs
 taj install --github https://github.com/org/repo.git
 taj install --gitlab https://gitlab.com/org/repo.git
@@ -54,13 +58,15 @@ repo = "https://github.com/BurntSushi/ripgrep.git"
 build = "cargo"
 bin = "rg"
 build_args = ["--features", "pcre2"]
+build_dir = "build"
 subdir = ""
 
 [env]
 RUSTFLAGS = "-C target-cpu=native"
 ```
 
-Supported `build` values: `cargo`, `make`, `cmake`, `go`, `gcc`, `g++`, `rustc`.
+Supported `build` values: `cargo`, `make`, `cmake`, `autotools`, `meson`, `go`, `gcc`, `g++`, `rustc`.
+Use `build = "meta"` for meta packages that only install dependencies.
 
 ## Config
 
@@ -84,11 +90,12 @@ Taj checks for build systems in this order:
 
 1. Cargo (`Cargo.toml`)
 2. Go (`go.mod`)
-3. CMake (`CMakeLists.txt`)
-4. Make (`Makefile` or `makefile`)
-5. C++ sources (`.cpp`, `.cc`, `.cxx`)
-6. C sources (`.c`)
-7. Rust (`src/main.rs` or `main.rs`)
+3. Meson (`meson.build`)
+4. CMake (`CMakeLists.txt`)
+5. Make (`Makefile` or `makefile`)
+6. C++ sources (`.cpp`, `.cc`, `.cxx`)
+7. C sources (`.c`)
+8. Rust (`src/main.rs` or `main.rs`)
 
 ## Notes
 

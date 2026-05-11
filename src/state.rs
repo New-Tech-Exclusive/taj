@@ -12,6 +12,14 @@ pub struct InstallRecord {
     pub repo: String,
     pub source: String,
     pub installed_at: i64,
+    #[serde(default)]
+    pub files: Vec<String>,
+    #[serde(default)]
+    pub install_root: Option<String>,
+    #[serde(default)]
+    pub source_name: Option<String>,
+    #[serde(default)]
+    pub is_meta: bool,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]

@@ -1,0 +1,8 @@
+name = "file"
+category = "filesystem"
+repo = "https://github.com/file/file.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

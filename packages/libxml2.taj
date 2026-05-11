@@ -1,0 +1,8 @@
+name = "libxml2"
+category = "libraries"
+repo = "https://gitlab.gnome.org/GNOME/libxml2.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

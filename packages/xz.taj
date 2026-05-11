@@ -1,0 +1,8 @@
+name = "xz"
+category = "compression"
+repo = "https://github.com/tukaani-project/xz.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

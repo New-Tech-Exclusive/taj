@@ -1,0 +1,8 @@
+name = "zlib"
+category = "libraries"
+repo = "https://github.com/madler/zlib.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

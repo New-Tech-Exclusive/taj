@@ -1,0 +1,7 @@
+name = "expat"
+category = "libraries"
+repo = "https://github.com/libexpat/libexpat.git"
+build = "cmake"
+
+[install]
+method = "cmake"

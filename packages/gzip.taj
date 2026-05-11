@@ -1,0 +1,8 @@
+name = "gzip"
+category = "compression"
+repo = "https://github.com/gnu-mirror-unofficial/gzip.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

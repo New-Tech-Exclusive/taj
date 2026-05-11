@@ -1,0 +1,8 @@
+name = "nano"
+category = "editors"
+repo = "https://github.com/madnight/nano.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

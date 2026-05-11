@@ -1,0 +1,8 @@
+name = "tar"
+category = "filesystem"
+repo = "https://github.com/gnu-mirror-unofficial/tar.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

@@ -1,0 +1,8 @@
+name = "lz4"
+category = "compression"
+repo = "https://github.com/lz4/lz4.git"
+build = "make"
+
+[install]
+method = "make"
+args = ["install"]

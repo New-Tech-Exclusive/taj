@@ -1,0 +1,8 @@
+name = "usbutils"
+category = "utils"
+repo = "https://github.com/gregkh/usbutils.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

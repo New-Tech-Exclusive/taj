@@ -10,9 +10,16 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum Command {
+    #[command(alias = "add")]
     Install(InstallArgs),
+    #[command(alias = "remove", alias = "rm")]
     Uninstall { name: String },
+    #[command(alias = "ls")]
     List,
+    #[command(alias = "update", alias = "up")]
+    Upgrade(UpgradeArgs),
+    #[command(name = "meta", alias = "bundle", about = "Install a meta package and its dependencies")]
+    Meta(MetaArgs),
 }
 
 #[derive(Args, Debug)]
@@ -25,6 +32,20 @@ pub struct InstallArgs {
 
     #[arg(long, value_name = "URL")]
     pub gitlab: Option<String>,
+}
+
+#[derive(Args, Debug)]
+#[command(group(ArgGroup::new("target").args(["name", "all"]).required(true)))]
+pub struct UpgradeArgs {
+    pub name: Option<String>,
+
+    #[arg(long)]
+    pub all: bool,
+}
+
+#[derive(Args, Debug)]
+pub struct MetaArgs {
+    pub name: String,
 }
 
 #[derive(Debug)]

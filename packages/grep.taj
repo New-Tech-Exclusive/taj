@@ -1,0 +1,8 @@
+name = "grep"
+category = "search"
+repo = "https://github.com/gnu-mirror-unofficial/grep.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

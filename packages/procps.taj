@@ -1,0 +1,8 @@
+name = "procps"
+category = "monitoring"
+repo = "https://gitlab.com/procps-ng/procps.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]

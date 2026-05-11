@@ -14,6 +14,7 @@ pub fn detect_build_spec(repo_dir: &Path, name_hint: &str) -> Result<BuildSpec> 
             args: Vec::new(),
             bin,
             subdir: None,
+            build_dir: None,
             env: empty_env,
         });
     }
@@ -24,6 +25,18 @@ pub fn detect_build_spec(repo_dir: &Path, name_hint: &str) -> Result<BuildSpec> 
             args: Vec::new(),
             bin: Some(name_hint.to_string()),
             subdir: None,
+            build_dir: None,
+            env: empty_env,
+        });
+    }
+
+    if repo_dir.join("meson.build").exists() {
+        return Ok(BuildSpec {
+            method: BuildMethod::Meson,
+            args: Vec::new(),
+            bin: None,
+            subdir: None,
+            build_dir: None,
             env: empty_env,
         });
     }
@@ -34,6 +47,18 @@ pub fn detect_build_spec(repo_dir: &Path, name_hint: &str) -> Result<BuildSpec> 
             args: Vec::new(),
             bin: None,
             subdir: None,
+            build_dir: None,
+            env: empty_env,
+        });
+    }
+
+    if repo_dir.join("configure").exists() {
+        return Ok(BuildSpec {
+            method: BuildMethod::Autotools,
+            args: Vec::new(),
+            bin: None,
+            subdir: None,
+            build_dir: None,
             env: empty_env,
         });
     }
@@ -44,6 +69,7 @@ pub fn detect_build_spec(repo_dir: &Path, name_hint: &str) -> Result<BuildSpec> 
             args: Vec::new(),
             bin: None,
             subdir: None,
+            build_dir: None,
             env: empty_env,
         });
     }
@@ -54,6 +80,7 @@ pub fn detect_build_spec(repo_dir: &Path, name_hint: &str) -> Result<BuildSpec> 
             args: Vec::new(),
             bin: Some(name_hint.to_string()),
             subdir: None,
+            build_dir: None,
             env: empty_env,
         });
     }
@@ -64,6 +91,7 @@ pub fn detect_build_spec(repo_dir: &Path, name_hint: &str) -> Result<BuildSpec> 
             args: Vec::new(),
             bin: Some(name_hint.to_string()),
             subdir: None,
+            build_dir: None,
             env: empty_env,
         });
     }
@@ -74,6 +102,7 @@ pub fn detect_build_spec(repo_dir: &Path, name_hint: &str) -> Result<BuildSpec> 
             args: Vec::new(),
             bin: Some(name_hint.to_string()),
             subdir: None,
+            build_dir: None,
             env: empty_env,
         });
     }

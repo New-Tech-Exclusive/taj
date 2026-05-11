@@ -1,0 +1,8 @@
+name = "findutils"
+category = "filesystem"
+repo = "https://github.com/findutils/findutils.git"
+build = "autotools"
+
+[install]
+method = "make"
+args = ["install"]
